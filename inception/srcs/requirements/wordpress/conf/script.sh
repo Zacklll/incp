@@ -1,31 +1,27 @@
+#!/bin/bash
 
-	until mariadb -h mariadb -u $MYSQL_USER -p$MYSQL_PASSWORD -e ";"
-do
-    sleep 1
-done
+if [ ! -f /var/www/html/wp-config.php ];then
+ wp core download  --allow-root
 
-wget https://wordpress.org/wordpress-6.4.3.tar.gz -P /var/www
-cd /var/www && tar -xzf wordpress-6.4.3.tar.gz && rm wordpress-6.4.3.tar.gz
+wp core config	--dbname=${MYSQL_DATABASE} \
+				--dbuser=${MYSQL_USER} \
+				--dbpass=${MYSQL_PASSWORD} \
+				--dbhost=${MYSQL_HOST} --allow-root
 
-chmod -R 755 /var/www/wordpress
+wp core install	--url="${DOMAIN}" \
+				--title="${TITLE}" \
+				--admin_user="${MYSQL_USER}" \
+				--admin_password="${MYSQL_PASSWORD}" \
+				--admin_email="${ADMIN_EMAIL}" --allow-root
+ 
+wp user create "${USER}" "${USER_EMAIL}" --role=author --user_pass="${USER_PASSWORD}" --allow-root
 
-if [ ! -f /var/www/wordpress/wp-config.php ]; then
+fi
 
-wp config create --allow-root --path='/var/www/wordpress' \
-				--dbname=$MYSQL_DATABASE \
-				--dbuser=$MYSQL_USER \
-				--dbpass=$MYSQL_PASSWORD \
-				--dbhost=$MYSQL_HOST \
-				--extra-php <<EOF 
-EOF
-wp core install --allow-root --path='/var/www/wordpress' \
-				--url=$DOMAIN --title=inception \
-				--admin_user=$MYSQL_USER \
-				--admin_password=$MYSQL_PASSWORD \
-				--admin_email=$ADMIN_EMAIL
+mkdir -p /run/php
 
-wp user create --allow-root --path='/var/www/wordpress' $USER $USER@gmail.com --user_pass=$USER
+sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 0.0.0.0:9000|' /etc/php/7.4/fpm/pool.d/www.conf
 
-mkdir /run/php
 
-exec php-fpm7.4 -F'
+
+exec  /usr/sbin/php-fpm7.4 -F

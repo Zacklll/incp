@@ -1,16 +1,13 @@
-FROM debian:bullseye
+FROM debian:11
 
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install nginx -y && \
-    mkdir -p /etc/nginx/ssl && \
-    apt install openssl -y && \
-    openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/CN=$DOMAIN"
+RUN apt -y update && apt -y upgrade && apt -y install  nginx openssl
 
-# RUN chmod 755 /var/www/wordpress
-# RUN chown -R www-data:www-data /var/www/wordpress
 
-RUN mkdir -p /var/run/nginx
+RUN openssl req  -x509 -newkey rsa:4096 -nodes -days 365 -keyout key.key -out cert.csr  -subj "/C=Mr/ST=BEG/L=BEG/O=1337/CN=zael-wad.42.fr"
 
-COPY ./conf/nginx.conf /etc/nginx/conf.d/default.conf
 
-CMD [ "nginx", "-g", "daemon off;" ]    
+COPY ./conf/nginx.conf /etc/nginx/sites-enabled/default.conf
+
+EXPOSE 443
+
+ENTRYPOINT [ "nginx", "-g","daemon off;"  ]

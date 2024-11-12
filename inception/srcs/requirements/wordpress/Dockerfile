@@ -1,19 +1,25 @@
-FROM debian:bullseye
+FROM debian:11
 
-RUN apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get install -y php7.4 wget php7.4-fpm php-mysql mariadb-client
+RUN apt-get -y update && apt-get -y upgrade
+
+RUN apt-get -y install -y curl php7.4 php-fpm  php-mysql  mariadb-client
+
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+RUN chmod +x wp-cli.phar
+
+RUN mv wp-cli.phar /usr/local/bin/wp
+
+COPY ./conf/script.sh /
+
+RUN chmod +x script.sh
+
+WORKDIR /var/www/html
+
+EXPOSE 9000
+
+ENTRYPOINT ["/script.sh"]
 
 
-RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-    && chmod +x wp-cli.phar \
-    && mv wp-cli.phar /usr/local/bin/wp
 
 
-RUN sed -i "s#listen = /run/php/php7.4-fpm.sock#listen = wordpress:9000#g" /etc/php/7.4/fpm/pool.d/www.conf
-
-COPY ./conf/script.sh   /
-
-RUN chmod 755 /script.sh
-
-CMD ["./script.sh"]
