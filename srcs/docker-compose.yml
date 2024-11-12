@@ -1,71 +1,79 @@
 version: '3'
 
 volumes:
-  mariadb:
+  data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/mallaoui/data/mariadb
+      device: /home/zael-wad/data/mariadb
   wordpress:
     driver: local
     driver_opts:
       type: none
-      o: bind
-      device: /home/mallaoui/data/wordpress
-  
+      o : bind
+      device: /home/zael-wad/data/wordpress
+
 networks:
-    inception:
-      driver: bridge
+  inception:
+    driver: bridge
+
 
 services:
   mariadb:
+    build: 
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    image: mariadb:42
     container_name: mariadb
-    image: mariadb:my_image
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 1000000
+    volumes:
+     - data:/var/lib/mysql
     networks:
       - inception
-    build:
-      context: ./requirements/mariadb/
-      dockerfile: Dockerfile
     env_file:
       - .env
-    volumes:
-      - mariadb:/var/lib/mysql
     restart: always
-  
-  nginx:
-    container_name: nginx
-    image: nginx:my_image
+
+    
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    image: wordpress:43
+    container_name: wordpress
+    networks:
+      - inception
     volumes:
-      - wordpress:/var/www/wordpress
+      - wordpress:/var/www/html/
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    env_file:
+      - .env
+    restart: always
+
+
+  nginx:
+    build:
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    image: nginx:42
+    ports:
+      - 443:443
+    volumes:
+      - wordpress:/var/www/html/
     networks:
       - inception
     depends_on:
       - wordpress
-    env_file:
-      - .env
-    build:
-      context: ./requirements/nginx/
-      dockerfile: Dockerfile
-    ports:
-      - "443:443"
     restart: always
-  
-  wordpress:
-    container_name: wordpress
-    image: wordpress:my_image
-    networks:
-      - inception
-    build:
-      context: ./requirements/wordpress/
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    volumes:
-      - wordpress:/var/www/wordpress/
-    restart: always
-    ports:
-      - "9000:9000"
-    depends_on:
-      - mariadb
-      - redis
+
+
+
