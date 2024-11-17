@@ -15,7 +15,7 @@ fclean: clean
 	docker system prune -af
 	docker volume prune -f
 	docker network prune -f
-	sudo rm -rf ~/data/wordpress/* && sudo rm -rf ~/data/mariadb/*
+	sudo rm -rf /home/test/data/wordpress/* && sudo rm -rf /home/test/data/mariadb/*
 re: fclean all
 
 .PHONY: all down clean re

@@ -20,8 +20,9 @@ fi
 
 mkdir -p /run/php
 
-sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 0.0.0.0:9000|' /etc/php/7.4/fpm/pool.d/www.conf
+sed -i 's|listen = /run/php/php.*-fpm.sock|listen = 0.0.0.0:9000|' /etc/php/*/fpm/pool.d/www.conf
 
 
 
-exec  /usr/sbin/php-fpm7.4 -F
+
+exec  /usr/sbin/php-fpm* -F

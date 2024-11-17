@@ -1,8 +1,8 @@
-FROM debian:11
+FROM debian:12
 
 RUN apt-get -y update && apt-get -y upgrade
 
-RUN apt-get -y install -y curl php7.4 php-fpm  php-mysql  mariadb-client
+RUN apt-get update && apt-get -y install curl php php-fpm php-mysql mariadb-client 
 
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 
